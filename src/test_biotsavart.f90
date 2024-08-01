@@ -10,6 +10,7 @@ program test_biotsavart
 
     call test_load_coils_file
     call test_compute_coils_segment_lengths
+    call test_equalize_coils_lenghts
     call test_compute_vector_potential
 
     contains
@@ -74,6 +75,22 @@ program test_biotsavart
 
         call print_ok
     end subroutine test_compute_coils_segment_lengths
+
+    subroutine test_equalize_coils_lenghts
+        use biotsavart, only: CoilsData, init_coils, equalize_coils_lenghts, &
+                              deinit_coils
+
+        type(CoilsData) :: coils
+
+        call print_test("equalize_coils_lenghts")
+
+        call init_straight_wire_coils(coils)
+        call equalize_coils_lenghts(coils)
+
+        call deinit_coils(coils)
+
+        call print_ok
+    end subroutine test_equalize_coils_lenghts
 
     subroutine test_compute_vector_potential
         use biotsavart, only: CoilsData, compute_vector_potential, &

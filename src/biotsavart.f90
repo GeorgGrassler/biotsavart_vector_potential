@@ -87,19 +87,35 @@ module biotsavart
     subroutine equalize_coils_lenghts(coils)
         type(CoilsData), intent(inout) :: coils
 
+        real(dp), dimension(:), allocatable :: lengths
+        real(dp) :: min_length
+
+        allocate(lengths(size(coils%x) - 1))
+        lengths = compute_coils_segment_lengths(coils)
+        min_length = minval(lengths)
+
+        call cut_coils_segments_to_length(coils, min_length)
+
+        deallocate(lengths)
     end subroutine equalize_coils_lenghts
 
         function compute_coils_segment_lengths(coils) result(lenghts)
             type(CoilsData), intent(in) :: coils
             real(dp), dimension(size(coils%x) - 1) :: lenghts
-            integer :: i
+            integer :: knot
 
-            do i = 1, size(coils%x) - 1
-                lenghts(i) = sqrt((coils%x(i+1) - coils%x(i))**2 + &
-                                  (coils%y(i+1) - coils%y(i))**2 + &
-                                  (coils%z(i+1) - coils%z(i))**2)
+            do knot = 1, size(coils%x) - 1
+                lenghts(knot) = sqrt((coils%x(knot+1) - coils%x(knot))**2 + &
+                                     (coils%y(knot+1) - coils%y(knot))**2 + &
+                                     (coils%z(knot+1) - coils%z(knot))**2)
             end do
         end function compute_coils_segment_lengths
+
+        subroutine cut_coils_segments_to_length(coils, length)
+            type(CoilsData), intent(inout) :: coils
+            real(dp), intent(in) :: length
+
+        end subroutine cut_coils_segments_to_length
 
     function compute_vector_potential(coils, x) result(A)
         ! Formula of Hanson and Hirshman (2002)
