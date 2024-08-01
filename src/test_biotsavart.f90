@@ -14,14 +14,14 @@ program test_biotsavart
     contains
 
     subroutine test_load_coils_file
-        use biotsavart, only: CoilsData, load_coils_file, deinit_coils
+        use biotsavart, only: CoilsData, load_coils_from_file, deinit_coils
 
         type(CoilsData) :: coils
 
         call print_test("load_coils_file")
 
         call create_test_coils_file
-        call load_coils_file(test_coils_file, coils)
+        call load_coils_from_file(test_coils_file, coils)
         call remove_test_coils_file
 
         if (size(coils%x) /= 4) then
@@ -108,12 +108,12 @@ program test_biotsavart
     end function Rcyl
 
     subroutine create_test_coils_file
-        use biotsavart, only: CoilsData, save_coils_file
+        use biotsavart, only: CoilsData, save_coils_to_file
 
         type(CoilsData) :: coils
 
         call init_straight_wire_coils(coils)
-        call save_coils_file(test_coils_file, coils)
+        call save_coils_to_file(test_coils_file, coils)
     end subroutine create_test_coils_file
 
     subroutine init_straight_wire_coils(coils)

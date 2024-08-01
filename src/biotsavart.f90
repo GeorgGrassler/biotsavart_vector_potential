@@ -33,8 +33,8 @@ module biotsavart
         call deallocate_coils_data(coils)
     end subroutine deinit_coils
 
-
-    subroutine load_coils_file(filename, coils)
+        
+    subroutine load_coils_from_file(filename, coils)
         character(*), intent(in) :: filename
         type(CoilsData), intent(out) :: coils
 
@@ -48,11 +48,10 @@ module biotsavart
             read(unit, *) coils%x(i), coils%y(i), coils%z(i), coils%current(i)
         end do
         close(unit)
+    end subroutine load_coils_from_file
+    
 
-    end subroutine load_coils_file
-
-
-    subroutine save_coils_file(filename, coils)
+    subroutine save_coils_to_file(filename, coils)
         character(*), intent(in) :: filename
         type(CoilsData), intent(in) :: coils
 
@@ -66,7 +65,7 @@ module biotsavart
             write(unit, *) coils%x(i), coils%y(i), coils%z(i), coils%current(i)
         end do
         close(unit)
-    end subroutine save_coils_file
+    end subroutine save_coils_to_file
 
 
     subroutine allocate_coils_data(coils, n_points)
