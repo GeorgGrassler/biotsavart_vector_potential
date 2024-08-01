@@ -16,9 +16,9 @@ program test_biotsavart
     contains
 
     subroutine test_load_coils_file
-        use biotsavart, only: CoilsData, load_coils_from_file, deinit_coils
+        use biotsavart, only: coils_t, load_coils_from_file, deinit_coils
 
-        type(CoilsData) :: coils
+        type(coils_t) :: coils
 
         call print_test("load_coils_file")
 
@@ -40,13 +40,13 @@ program test_biotsavart
 
 
     subroutine test_compute_coils_segment_lengths
-        use biotsavart, only: CoilsData, init_coils, & 
+        use biotsavart, only: coils_t, init_coils, &
                               compute_coils_segment_lengths, deinit_coils
 
         real(dp), parameter :: tol = 1.0e-9
         integer, parameter :: N_KNOTS = 5
 
-        type(CoilsData) :: coils
+        type(coils_t) :: coils
         real(dp), dimension(:), allocatable :: lengths
         real(dp), dimension(N_KNOTS) :: x, y, z, current, expected_lengths
         integer :: i
@@ -77,10 +77,10 @@ program test_biotsavart
     end subroutine test_compute_coils_segment_lengths
 
     subroutine test_equalize_coils_lenghts
-        use biotsavart, only: CoilsData, init_coils, equalize_coils_lenghts, &
+        use biotsavart, only: coils_t, init_coils, equalize_coils_lenghts, &
                               deinit_coils
 
-        type(CoilsData) :: coils
+        type(coils_t) :: coils
 
         call print_test("equalize_coils_lenghts")
 
@@ -93,13 +93,13 @@ program test_biotsavart
     end subroutine test_equalize_coils_lenghts
 
     subroutine test_compute_vector_potential
-        use biotsavart, only: CoilsData, compute_vector_potential, &
+        use biotsavart, only: coils_t, compute_vector_potential, &
             deinit_coils, clight
 
         real(dp), parameter :: tol = 1.0e-9
         integer, parameter :: N_TEST = 3
 
-        type(CoilsData) :: coils
+        type(coils_t) :: coils
         real(dp) :: x_test(3, N_TEST)
         real(dp), dimension(3) :: x, A, A_analytic, x_too_close
         integer :: i
@@ -163,18 +163,18 @@ program test_biotsavart
     end function Rcyl
 
     subroutine create_test_coils_file
-        use biotsavart, only: CoilsData, save_coils_to_file
+        use biotsavart, only: coils_t, save_coils_to_file
 
-        type(CoilsData) :: coils
+        type(coils_t) :: coils
 
         call init_straight_wire_coils(coils)
         call save_coils_to_file(test_coils_file, coils)
     end subroutine create_test_coils_file
 
     subroutine init_straight_wire_coils(coils)
-        use biotsavart, only: CoilsData, init_coils
+        use biotsavart, only: coils_t, init_coils
 
-        type(CoilsData), intent(out) :: coils
+        type(coils_t), intent(out) :: coils
 
         real(dp), dimension(4) :: x, y, z, current
         real(dp)               :: L

@@ -1,4 +1,5 @@
 module test_util
+    ! TODO move to libneo
     implicit none
 
     contains
