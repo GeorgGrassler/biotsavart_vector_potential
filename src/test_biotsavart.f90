@@ -9,6 +9,7 @@ program test_biotsavart
     real(dp), parameter :: large_distance = 1.0d3
 
     call test_load_coils_file
+    call test_compute_coils_segment_lengths
     call test_compute_vector_potential
 
     contains
@@ -36,6 +37,43 @@ program test_biotsavart
         call print_ok
     end subroutine test_load_coils_file
 
+
+    subroutine test_compute_coils_segment_lengths
+        use biotsavart, only: CoilsData, init_coils, & 
+                              compute_coils_segment_lengths, deinit_coils
+
+        real(dp), parameter :: tol = 1.0e-9
+        integer, parameter :: N_KNOTS = 5
+
+        type(CoilsData) :: coils
+        real(dp), dimension(:), allocatable :: lengths
+        real(dp), dimension(N_KNOTS) :: x, y, z, current, expected_lengths
+        integer :: i
+
+        call print_test("compute_coils_segment_lengths")
+
+        x = [-1.0d0, 0.0d0, 1.0d0, 0.0d0, -1.0d0]
+        y = [1.0d0, 0.0d0, -1.0d0, 0.0d0, 1.0d0]
+        z = [0.0d0, 1.0d0, 0.0d0, -1.0d0, 0.0d0]
+        current = [0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0]
+        call init_coils(x, y, z, current, coils)
+
+        lengths = compute_coils_segment_lengths(coils)
+        expected_lengths = [sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0)]
+
+        do i = 1, 3
+            if (abs(lengths(i) - expected_lengths(i)) > tol) then
+                print *, "lengths(i) = ", lengths(i)
+                print *, "expected_lengths(i) = ", expected_lengths(i)
+                call print_fail
+                error stop
+            end if
+        end do
+
+        call deinit_coils(coils)
+
+        call print_ok
+    end subroutine test_compute_coils_segment_lengths
 
     subroutine test_compute_vector_potential
         use biotsavart, only: CoilsData, compute_vector_potential, &
