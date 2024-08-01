@@ -5,7 +5,6 @@ program test_biotsavart
     implicit none
 
     character(*), parameter :: test_coils_file = "coils.test"
-    character(*), parameter :: real_coils_file = "/proj/plasma/data/W7X/COILS/coils.w7x"
 
     real(dp), parameter :: large_distance = 1.0d3
 
@@ -15,7 +14,7 @@ program test_biotsavart
     contains
 
     subroutine test_load_coils_file
-        use biotsavart, only: CoilsData, load_coils_file, deinit_coils_data
+        use biotsavart, only: CoilsData, load_coils_file, deinit_coils
 
         type(CoilsData) :: coils
 
@@ -25,14 +24,14 @@ program test_biotsavart
         call load_coils_file(test_coils_file, coils)
         call remove_test_coils_file
 
-        if (size(coils%x) /= 2) then
+        if (size(coils%x) /= 4) then
             print *, "Coil length mismatch"
             print *, "len(coils%x) = ", size(coils%x)
             call print_fail
             error stop
         end if
 
-        call deinit_coils_data(coils)
+        call deinit_coils(coils)
 
         call print_ok
     end subroutine test_load_coils_file
@@ -40,50 +39,66 @@ program test_biotsavart
 
     subroutine test_compute_vector_potential
         use biotsavart, only: CoilsData, compute_vector_potential, &
-            deinit_coils_data, clight
+            deinit_coils, clight
 
         real(dp), parameter :: tol = 1.0e-9
         integer, parameter :: N_TEST = 3
 
         type(CoilsData) :: coils
         real(dp) :: x_test(3, N_TEST)
-        real(dp), dimension(3) :: x, A, A_expected
-        real(dp) :: sqrt_term, L, R, AZ_expected
+        real(dp), dimension(3) :: x, A, A_analytic, x_too_close
         integer :: i
 
         call print_test("compute_vector_potential")
 
         x_test(:, 1) = [0.4, 0.3, 0.8]
-        x_test(:, 2) = [0.0, 0.1, 0.3]
-        x_test(:, 3) = [1e-5, 0.0, 0.0]
+        x_test(:, 2) = [0.0, 0.2, -0.3]
+        x_test(:, 3) = [1.0d2, -1.0d2, 1.0d2]
 
-        call init_test_coils_data(coils)
+        call init_straight_wire_coils(coils)
 
         do i = 1, N_TEST
             x = x_test(:, i)
-            L = large_distance
-            R = Rcyl(x)
-            sqrt_term = sqrt(L**2 + R**2)
-            AZ_expected = 1.0d0/clight*log((L + sqrt_term)/(-L + sqrt_term))
-            A_expected = [0.0d0, 0.0d0, AZ_expected]
+            A_analytic = vector_potential_straight_wire(x, large_distance, 1.0d0)
             A = compute_vector_potential(coils, x)
-            print *, "A = ", A(3)*clight
-            print *, "A_expected = ", A_expected(3)*clight
-            print *, "Ratio = ", A(3) / A_expected(3)
-            if (any(abs(A - A_expected)*clight > tol)) then
+            if (any(abs(A - A_analytic)*clight > tol)) then
                 print *, "A = ", A(3)*clight
-                print *, "A_expected = ", A_expected(3)*clight
-                print *, "Ratio = ", A(3) / A_expected(3)
+                print *, "A_analytic = ", A_analytic(3)*clight
+                print *, "Ratio = ", A(3) / A_analytic(3)
                 call print_fail
                 error stop
             end if
         end do
 
-        call deinit_coils_data(coils)
+        x_too_close = [1.0e-5, 0.0, 0.0]
+        A_analytic = vector_potential_straight_wire(x_too_close, large_distance, 1.0d0)
+        A = compute_vector_potential(coils, x_too_close)
+        if (all(abs(A - A_analytic)*clight < tol)) then
+            call print_fail
+            error stop
+        end if
+
+        call deinit_coils(coils)
 
         call print_ok
     end subroutine test_compute_vector_potential
 
+    function vector_potential_straight_wire(x, L, current) result(A)
+        use biotsavart, only: clight
+
+        real(dp), dimension(3), intent(in) :: x
+        real(dp), intent(in) :: L, current
+
+        real(dp), dimension(3) :: A
+        real(dp) :: R, z, L_half, A_z
+
+        R = Rcyl(x)
+        z = x(3)
+        L_half = L/2.0d0
+        A_z = current/clight*log((L_half - z + sqrt((L_half - z)**2 + R**2)) / &
+                                 (-L_half - z + sqrt((-L_half - z)**2 + R**2)))
+        A = [0.0d0, 0.0d0, A_z]
+    end function vector_potential_straight_wire
 
     function Rcyl(x)
         real(dp), dimension(3), intent(in) :: x
@@ -92,32 +107,31 @@ program test_biotsavart
         Rcyl = sqrt(x(1)**2 + x(2)**2)
     end function Rcyl
 
-
-    subroutine init_test_coils_data(coils)
-        use biotsavart, only: CoilsData, init_coils_data
-
-        type(CoilsData), intent(out) :: coils
-
-        real(dp), dimension(2) :: x, y, z, current
-
-        x = [0.0d0, 0.0d0]
-        y = [0.0d0, 0.0d0]
-        z = [-large_distance/2.0d0, large_distance/2.0d0]
-        current = [1.0d0, 0.0d0]
-
-        call init_coils_data(x, y, z, current, coils)
-    end subroutine init_test_coils_data
-
-
     subroutine create_test_coils_file
-        use biotsavart, only: CoilsData, init_coils_data, save_coils_file
+        use biotsavart, only: CoilsData, save_coils_file
 
         type(CoilsData) :: coils
 
-        call init_test_coils_data(coils)
+        call init_straight_wire_coils(coils)
         call save_coils_file(test_coils_file, coils)
     end subroutine create_test_coils_file
 
+    subroutine init_straight_wire_coils(coils)
+        use biotsavart, only: CoilsData, init_coils
+
+        type(CoilsData), intent(out) :: coils
+
+        real(dp), dimension(4) :: x, y, z, current
+        real(dp)               :: L
+
+        x = [0.0d0, 0.0d0, 0.0d0, 0.0d0]
+        y = [0.0d0, 0.0d0, 0.0d0, 0.0d0]
+        L = large_distance
+        z = [-L/2.0d0, -L/4.0d0, 0.0d0, L/2.0d0]
+        current = [1.0d0, 1.0d0, 1.0d0, 0.0d0]
+
+        call init_coils(x, y, z, current, coils)
+    end subroutine init_straight_wire_coils
 
     subroutine remove_test_coils_file
         call system("rm -f " // test_coils_file)

@@ -11,7 +11,7 @@ module biotsavart
     contains
 
 
-    subroutine init_coils_data(x, y, z, current, coils)
+    subroutine init_coils(x, y, z, current, coils)
         real(dp), intent(in) :: x(:), y(:), z(:), current(:)
         type(CoilsData), intent(out) :: coils
 
@@ -24,14 +24,14 @@ module biotsavart
         coils%y = y
         coils%z = z
         coils%current = current
-    end subroutine init_coils_data
+    end subroutine init_coils
 
 
-    subroutine deinit_coils_data(coils)
+    subroutine deinit_coils(coils)
         type(CoilsData), intent(inout) :: coils
 
         call deallocate_coils_data(coils)
-    end subroutine deinit_coils_data
+    end subroutine deinit_coils
 
 
     subroutine load_coils_file(filename, coils)
