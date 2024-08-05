@@ -97,23 +97,73 @@ function compute_vector_potential(coils, x) result(A)
 
     A = 0.0d0
     do i = 1, size(coils%x) - 1
-        dl(1) = coils%x(i+1) - coils%x(i)
-        dl(2) = coils%y(i+1) - coils%y(i)
-        dl(3) = coils%z(i+1) - coils%z(i)
-        dx_i(1) = x(1) - coils%x(i)
-        dx_i(2) = x(2) - coils%y(i)
-        dx_i(3) = x(3) - coils%z(i)
-        dx_f(1) = x(1) - coils%x(i+1)
-        dx_f(2) = x(2) - coils%y(i+1)
-        dx_f(3) = x(3) - coils%z(i+1)
-        R_i = sqrt(dx_i(1)**2 + dx_i(2)**2 + dx_i(3)**2)
-        R_f = sqrt(dx_f(1)**2 + dx_f(2)**2 + dx_f(3)**2)
-        L = sqrt(dl(1)**2 + dl(2)**2 + dl(3)**2)
+        dl = get_segment_vector(coils, i)
+        dx_i = get_vector_from_segment_start_to_x(coils, i, x)
+        dx_f = get_vector_from_segment_end_to_x(coils, i, x)
+        R_i = calc_norm(dx_i)
+        R_f = calc_norm(dx_f)
+        L = calc_norm(dl)
         eps = L / (R_i + R_f)
         log_term = log((1.0d0 + eps) / (1.0d0 - eps))
-        A = A + (dl / (clight*L)) * log_term
+        A = A + coils%current(i)*(dl / (clight*L)) * log_term
     end do
 end function compute_vector_potential
+
+
+function get_segment_vector(coils, i) result(dl)
+    type(coils_t), intent(in) :: coils
+    integer, intent(in) :: i
+
+    real(dp) :: dl(3)
+
+    dl(1) = coils%x(i+1) - coils%x(i)
+    dl(2) = coils%y(i+1) - coils%y(i)
+    dl(3) = coils%z(i+1) - coils%z(i)
+end function get_segment_vector
+
+
+function get_vector_from_segment_start_to_x(coils, i, x) result(dx_i)
+    type(coils_t), intent(in) :: coils
+    integer, intent(in) :: i
+    real(dp), intent(in) :: x(3)
+
+    real(dp) :: dx_i(3)
+
+    dx_i(1) = x(1) - coils%x(i)
+    dx_i(2) = x(2) - coils%y(i)
+    dx_i(3) = x(3) - coils%z(i)
+end function get_vector_from_segment_start_to_x
+
+
+function get_vector_from_segment_end_to_x(coils, i, x) result(dx_f)
+    type(coils_t), intent(in) :: coils
+    integer, intent(in) :: i
+    real(dp), intent(in) :: x(3)
+
+    real(dp) :: dx_f(3)
+
+    dx_f(1) = x(1) - coils%x(i+1)
+    dx_f(2) = x(2) - coils%y(i+1)
+    dx_f(3) = x(3) - coils%z(i+1)
+end function get_vector_from_segment_end_to_x
+
+
+function calc_norm(v) result(norm)
+    real(dp), intent(in) :: v(3)
+    real(dp) :: norm
+
+    norm = sqrt(v(1)**2 + v(2)**2 + v(3)**2)
+end function calc_norm
+
+
+function cross_product(a, b) result(c)
+    real(dp), intent(in) :: a(3), b(3)
+    real(dp) :: c(3)
+
+    c(1) = a(2)*b(3) - a(3)*b(2)
+    c(2) = a(3)*b(1) - a(1)*b(3)
+    c(3) = a(1)*b(2) - a(2)*b(1)
+end function cross_product
 
 
 end module biotsavart
