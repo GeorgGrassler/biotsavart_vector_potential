@@ -13,6 +13,7 @@ program test_biotsavart
     call test_compute_vector_potential
     call test_compute_vector_potential_circular_loop
     call test_compute_magnetic_field
+    call test_compute_magnetic_field_circular_loop
 
     contains
 
@@ -112,7 +113,7 @@ program test_biotsavart
         call print_test("compute_vector_potential_circular_loop")
 
         x_test(:, 1) = [0.0d0, 0.0d0, 0.0d0]
-        x_test(:, 2) = [0.0d0, 0.0d0, -1.0d0]
+        x_test(:, 2) = [0.0d0, 0.0d0, -2.0d0]
         x_test(:, 3) = [0.0d0, 0.0d0, +1.0d2]
 
         number_of_segments = int(2*pi/tol) + 2
@@ -204,6 +205,57 @@ program test_biotsavart
         B_y = B_phi * x(1) / R
         B = [B_x, B_y, 0.0d0]
     end function magnetic_field_straight_wire
+
+
+    subroutine test_compute_magnetic_field_circular_loop
+        use biotsavart, only: coils_t, compute_magnetic_field, &
+                              deinit_coils, clight, calc_norm
+
+        real(dp), parameter :: tol = 1.0e-5
+        integer, parameter :: N_TEST = 3
+
+        type(coils_t) :: coils
+        real(dp) :: x_test(3, N_TEST), x(3), B(3), B_analytic(3)
+        integer :: number_of_segments, i
+
+        call print_test("compute_magnetic_field_circular_loop")
+
+        number_of_segments = int(2*pi/tol)*2 + 2
+        call init_circular_loop_coils(coils, number_of_segments)
+
+        x_test(:, 1) = [0.0d0, 0.0d0, 0.0d0]
+        x_test(:, 2) = [0.0d0, 0.0d0, -2.0d0]
+        x_test(:, 3) = [0.0d0, 0.0d0, +1.0d2]
+
+        do i = 1, N_TEST
+            x = x_test(:, i)
+            B = compute_magnetic_field(coils, x)
+            B_analytic = magnetic_field_circular_loop_on_axis(x(3), 1.0d0, 1.0d0)
+            if (any(abs(B - B_analytic)*clight > tol)) then
+                print *, "B = ", B * clight
+                print *, "B_analytic = ", B_analytic * clight
+                call print_fail
+                error stop
+            end if
+        end do
+
+        call deinit_coils(coils)
+
+        call print_ok
+    end subroutine test_compute_magnetic_field_circular_loop
+
+    
+    function magnetic_field_circular_loop_on_axis(z, R0, current) result(B)
+        use biotsavart, only: clight
+
+        real(dp), intent(in) :: z, R0, current
+
+        real(dp), dimension(3) :: B
+        real(dp) :: B_z
+
+        B_z = current / clight * 2.0d0 * pi * R0**2 / sqrt(R0**2 + z**2)**3
+        B = [0.0d0, 0.0d0, B_z]
+    end function magnetic_field_circular_loop_on_axis
 
 
     function Rcyl(x)
