@@ -5,11 +5,13 @@ program test_biotsavart
     implicit none
 
     character(*), parameter :: test_coils_file = "coils.test"
+    real(8), parameter :: pi = 3.14159265358979323846d0
 
     real(dp), parameter :: large_distance = 1.0d3
 
     call test_load_coils_file
     call test_compute_vector_potential
+    call test_compute_vector_potential_circular_loop
     call test_compute_magnetic_field
 
     contains
@@ -93,6 +95,56 @@ program test_biotsavart
                                      (-L_half - z + sqrt((-L_half - z)**2 + R**2)))
         A = [0.0d0, 0.0d0, A_z]
     end function vector_potential_straight_wire
+
+
+    subroutine test_compute_vector_potential_circular_loop
+        use biotsavart, only: coils_t, compute_vector_potential, &
+                              deinit_coils, clight, calc_norm
+
+        real(dp), parameter :: tol = 1.0e-5
+        integer, parameter :: N_TEST = 3
+
+        type(coils_t) :: coils
+        real(dp) :: x_test(3, N_TEST)
+        real(dp), dimension(3) :: x, A, A_analytic
+        integer :: number_of_segments, i
+
+        call print_test("compute_vector_potential_circular_loop")
+
+        x_test(:, 1) = [0.0d0, 0.0d0, 0.0d0]
+        x_test(:, 2) = [0.0d0, 0.0d0, -1.0d0]
+        x_test(:, 3) = [0.0d0, 0.0d0, +1.0d2]
+
+        number_of_segments = int(2*pi/tol) + 2
+        call init_circular_loop_coils(coils, number_of_segments)
+
+        do i = 1, N_TEST
+            x = x_test(:, i)
+            A_analytic = vector_potential_circular_loop_on_axis(x(3), 1.0d0, 1.0d0)
+            A = compute_vector_potential(coils, x)
+            if (any(abs(A - A_analytic)*clight > tol)) then
+                print *, "A = ", calc_norm(A)*clight
+                print *, "A_analytic = ", calc_norm(A_analytic)*clight
+                call print_fail
+                error stop
+            end if
+        end do
+
+        call deinit_coils(coils)
+
+        call print_ok
+    end subroutine test_compute_vector_potential_circular_loop
+
+
+    function vector_potential_circular_loop_on_axis(z, R0, current) result(A)
+        use biotsavart, only: clight
+
+        real(dp), intent(in) :: z, R0, current
+
+        real(dp), dimension(3) :: A
+
+        A = 0.0d0 * current / clight * 2 * pi * R0 / sqrt(R0**2 + z**2)
+    end function vector_potential_circular_loop_on_axis
 
 
     subroutine test_compute_magnetic_field
@@ -188,6 +240,31 @@ program test_biotsavart
 
         call init_coils(x, y, z, current, coils)
     end subroutine init_straight_wire_coils
+
+
+    subroutine init_circular_loop_coils(coils, number_of_segments)
+        use biotsavart, only: coils_t, init_coils
+
+        type(coils_t), intent(out) :: coils
+        integer, intent(in) :: number_of_segments
+
+        real(dp), dimension(number_of_segments) :: x, y, z, current
+        real(dp)               :: R, theta, dtheta
+        integer                :: i
+
+        R = 1.0d0
+        dtheta = 2.0d0 * pi / number_of_segments
+        do i = 1, number_of_segments
+            theta = dtheta * (i - 1)
+            x(i) = R * cos(theta)
+            y(i) = R * sin(theta)
+            z(i) = 0.0d0
+            current(i) = 1.0d0
+        end do
+        current(number_of_segments) = 0.0d0
+
+        call init_coils(x, y, z, current, coils)
+    end subroutine init_circular_loop_coils
 
 
     subroutine remove_test_coils_file
