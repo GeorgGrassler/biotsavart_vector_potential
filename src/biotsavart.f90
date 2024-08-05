@@ -105,9 +105,33 @@ function compute_vector_potential(coils, x) result(A)
         L = calc_norm(dl)
         eps = L / (R_i + R_f)
         log_term = log((1.0d0 + eps) / (1.0d0 - eps))
-        A = A + coils%current(i)*(dl / (clight*L)) * log_term
+        A = A + (coils%current(i) / clight) * (dl / L) * log_term
     end do
 end function compute_vector_potential
+
+
+function compute_magnetic_field(coils, x) result(B)
+    type(coils_t), intent(in) :: coils
+    real(dp), intent(in) :: x(3)
+
+    real(dp) :: B(3), dx_i(3), dx_f(3), dl(3), R_i, R_f, L, eps, dx_i_hat(3), dl_hat(3)
+    integer :: i
+
+    B = 0.0d0
+    do i = 1, size(coils%x) - 1
+        dl = get_segment_vector(coils, i)
+        dx_i = get_vector_from_segment_start_to_x(coils, i, x)
+        dx_f = get_vector_from_segment_end_to_x(coils, i, x)
+        R_i = calc_norm(dx_i)
+        R_f = calc_norm(dx_f)
+        L = calc_norm(dl)
+        eps = L / (R_i + R_f)
+        dx_i_hat = dx_i / R_i
+        dl_hat = dl / L
+        B = B + (coils%current(i) / clight) * cross_product(dl_hat, dx_i_hat) * &
+                (1 / R_f) * (2*eps / (1.0d0 - eps**2))
+    end do
+end function compute_magnetic_field
 
 
 function get_segment_vector(coils, i) result(dl)

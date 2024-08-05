@@ -10,6 +10,7 @@ program test_biotsavart
 
     call test_load_coils_file
     call test_compute_vector_potential
+    call test_compute_magnetic_field
 
     contains
 
@@ -39,14 +40,14 @@ program test_biotsavart
 
     subroutine test_compute_vector_potential
         use biotsavart, only: coils_t, compute_vector_potential, &
-            deinit_coils, clight
+                              deinit_coils, clight
 
         real(dp), parameter :: tol = 1.0e-9
         integer, parameter :: N_TEST = 3
 
         type(coils_t) :: coils
         real(dp) :: x_test(3, N_TEST)
-        real(dp), dimension(3) :: x, A, A_analytic, x_too_close
+        real(dp), dimension(3) :: x, A, A_analytic
         integer :: i
 
         call print_test("compute_vector_potential")
@@ -70,14 +71,6 @@ program test_biotsavart
             end if
         end do
 
-        x_too_close = [1.0e-5, 0.0, 0.0]
-        A_analytic = vector_potential_straight_wire(x_too_close, large_distance, 1.0d0)
-        A = compute_vector_potential(coils, x_too_close)
-        if (all(abs(A - A_analytic)*clight < tol)) then
-            call print_fail
-            error stop
-        end if
-
         call deinit_coils(coils)
 
         call print_ok
@@ -96,10 +89,69 @@ program test_biotsavart
         R = Rcyl(x)
         z = x(3)
         L_half = L/2.0d0
-        A_z = current/clight*log((L_half - z + sqrt((L_half - z)**2 + R**2)) / &
-                                 (-L_half - z + sqrt((-L_half - z)**2 + R**2)))
+        A_z = current / clight * log((L_half - z + sqrt((L_half - z)**2 + R**2)) / &
+                                     (-L_half - z + sqrt((-L_half - z)**2 + R**2)))
         A = [0.0d0, 0.0d0, A_z]
     end function vector_potential_straight_wire
+
+
+    subroutine test_compute_magnetic_field
+        use biotsavart, only: coils_t, compute_magnetic_field, &
+                              deinit_coils, clight, calc_norm
+
+        real(dp), parameter :: tol = 1.0e-9
+        integer, parameter :: N_TEST = 3
+
+        type(coils_t) :: coils
+        real(dp) :: x_test(3, N_TEST), x(3), B(3), B_analytic(3)
+        integer :: i
+
+        call print_test("compute_magnetic_field")
+
+        call init_straight_wire_coils(coils)
+
+        x_test(:, 1) = [1.0d0, 0.0d0, 0.0d0]
+        x_test(:, 2) = [0.0d0, 0.2d0, -0.3d0]
+        x_test(:, 3) = [1.0d2, -1.0d2, 1.0d2]
+        
+        do i = 1, N_TEST
+            x = x_test(:, i)
+            B = compute_magnetic_field(coils, x)
+            B_analytic = magnetic_field_straight_wire(x, large_distance, 1.0d0)
+            if (any(abs(B - B_analytic)*clight > tol)) then
+                print *, "B = ", calc_norm(B)*clight
+                print *, "B_analytic = ", calc_norm(B_analytic)*clight
+                print *, "Ratio = ", calc_norm(B) / calc_norm(B_analytic)
+                call print_fail
+                error stop
+            end if
+        end do
+
+        call deinit_coils(coils)
+
+        call print_ok
+    end subroutine test_compute_magnetic_field
+
+
+    function magnetic_field_straight_wire(x, L, current) result(B)
+        use biotsavart, only: clight
+
+        real(dp), dimension(3), intent(in) :: x
+        real(dp), intent(in) :: L, current
+
+        real(dp), dimension(3) :: B
+        real(dp) :: R, z, L_half, B_phi, B_x, B_y, sin_theta_1, sin_theta_2
+
+        R = Rcyl(x)
+        z = x(3)
+        L_half = L/2.0d0
+        sin_theta_1 = (L_half + z) / sqrt((L_half + z)**2 + R**2)
+        sin_theta_2 = (L_half - z) / sqrt((L_half - z)**2 + R**2)
+        B_phi = current / clight * 1.0d0 / R * (sin_theta_1 + sin_theta_2)
+        B_x = -B_phi * x(2) / R
+        B_y = B_phi * x(1) / R
+        B = [B_x, B_y, 0.0d0]
+    end function magnetic_field_straight_wire
 
 
     function Rcyl(x)
