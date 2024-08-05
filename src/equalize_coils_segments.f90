@@ -38,6 +38,8 @@ end function compute_coils_segments_lengths
 
 
 subroutine cut_coils_segments(coils, cuts_per_knot)
+    use biotsavart, only: init_coils, deinit_coils
+    
     type(coils_t), intent(inout) :: coils
     integer, dimension(:), intent(in) :: cuts_per_knot
     

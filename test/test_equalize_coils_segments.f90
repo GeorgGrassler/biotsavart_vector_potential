@@ -14,8 +14,8 @@ program test_equalize_coils_segments
 
 
     subroutine test_compute_coils_segment_lengths
-        use biotsavart, only: coils_t, init_coils, &
-                              compute_coils_segments_lengths, deinit_coils
+        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use equalize_coils_segments, only: compute_coils_segments_lengths
 
         real(dp), parameter :: tol = 1.0e-9
 
@@ -47,7 +47,8 @@ program test_equalize_coils_segments
 
 
     subroutine test_calc_subknot_xyz
-        use biotsavart, only: coils_t, init_coils, calc_subknot_xyz, deinit_coils
+        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use equalize_coils_segments, only: calc_subknot_xyz
 
         real(dp), parameter :: tol = 1.0e-9
 
@@ -78,8 +79,9 @@ program test_equalize_coils_segments
 
 
     subroutine test_cut_coils_segments
-        use biotsavart, only: coils_t, init_coils, cut_coils_segments, &
-                              compute_coils_segments_lengths, deinit_coils
+        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use equalize_coils_segments, only: cut_coils_segments, &
+                                           compute_coils_segments_lengths
 
         real(dp), parameter :: tol = 1.0e-9
 
@@ -128,8 +130,9 @@ program test_equalize_coils_segments
 
 
     subroutine test_equalize_coils_lenghts
-        use biotsavart, only: coils_t, init_coils, equalize_coils_segments_lengths, &
-                              deinit_coils, compute_coils_segments_lengths
+        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use equalize_coils_segments, only: equalize_coils_segments_lengths, &
+                                           compute_coils_segments_lengths
 
         type(coils_t) :: coils, old_coils
         real(dp), dimension(4) :: lengths
