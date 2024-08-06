@@ -20,8 +20,8 @@ program test_equalize_coils_segments
         real(dp), parameter :: tol = 1.0e-9
 
         type(coils_t) :: coils
-        real(dp), dimension(5) :: lengths
-        real(dp), dimension(5) :: expected_lengths
+        real(dp), dimension(4) :: lengths
+        real(dp), dimension(4) :: expected_lengths
         integer :: i
 
         call print_test("compute_coils_segment_lengths")
@@ -29,7 +29,7 @@ program test_equalize_coils_segments
         call init_diamond_wire_coils(coils)
 
         lengths = compute_coils_segments_lengths(coils)
-        expected_lengths = [sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0)]
+        expected_lengths = [sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0), sqrt(3.0d0)]
 
         do i = 1, 3
             if (abs(lengths(i) - expected_lengths(i)) > tol) then
@@ -87,7 +87,7 @@ program test_equalize_coils_segments
 
         type(coils_t) :: coils
         integer, dimension(4) :: cuts_per_knot
-        real(dp) :: expected_x = 0.5d0, expected_y = 1.0d0, expected_current = 1.0d0
+        real(dp) :: expected_x = 0.5d0, expected_y = 1.0d0, expected_current = 4.0d0
 
         call print_test("cut_coils_segments")
 
@@ -135,7 +135,7 @@ program test_equalize_coils_segments
                                            compute_coils_segments_lengths
 
         type(coils_t) :: coils, old_coils
-        real(dp), dimension(4) :: lengths
+        real(dp), dimension(:), allocatable :: lengths
         real(dp) :: min_length
 
         call print_test("equalize_coils_lenghts")
@@ -157,6 +157,7 @@ program test_equalize_coils_segments
         coils%z(2) = coils%z(2) - 0.5d0
         min_length = minval(compute_coils_segments_lengths(coils))
         call equalize_coils_segments_lengths(coils)
+        allocate(lengths(size(coils%x) - 1))
         lengths = compute_coils_segments_lengths(coils)
         if (any(abs(lengths - min_length) > min_length)) then
             print *, "Coil segments lengths mismatch"
@@ -164,9 +165,10 @@ program test_equalize_coils_segments
             call print_fail
             error stop
         end if
-        print *, compute_coils_segments_lengths(coils)
+        deallocate(lengths)
 
         call deinit_coils(coils)
+
         call print_ok
     end subroutine test_equalize_coils_lenghts
 
@@ -216,7 +218,7 @@ program test_equalize_coils_segments
         x = [-1.0d0, 0.0d0, 1.0d0, 0.0d0, -1.0d0]
         y = [1.0d0, 0.0d0, -1.0d0, 0.0d0, 1.0d0]
         z = [0.0d0, 1.0d0, 0.0d0, -1.0d0, 0.0d0]
-        current = [1.0d0, 1.0d0, 1.0d0, 1.0d0, 0.0d0]
+        current = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 0.0d0]
 
         call init_coils(x, y, z, current, coils)
     end subroutine init_diamond_wire_coils
