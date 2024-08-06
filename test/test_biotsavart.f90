@@ -5,6 +5,7 @@ program test_biotsavart
     implicit none
 
     character(*), parameter :: test_coils_file = "coils.test"
+    !character(*), parameter :: coils_file = "/proj/plasma/DATA/W7X/COILS/coils.w7x"
     real(8), parameter :: pi = 3.14159265358979323846d0
 
     real(dp), parameter :: large_distance = 1.0d3
