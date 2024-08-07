@@ -19,7 +19,7 @@ program test_biotsavart
     contains
 
     subroutine test_load_coils_file
-        use biotsavart, only: coils_t, load_coils_from_file, deinit_coils
+        use biotsavart, only: coils_t, load_coils_from_file, coils_deinit
 
         type(coils_t) :: coils
 
@@ -36,7 +36,7 @@ program test_biotsavart
             error stop
         end if
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_load_coils_file
@@ -44,7 +44,7 @@ program test_biotsavart
 
     subroutine test_compute_vector_potential
         use biotsavart, only: coils_t, compute_vector_potential, &
-                              deinit_coils, clight
+                              coils_deinit, clight
 
         real(dp), parameter :: tol = 1.0e-9
         integer, parameter :: N_TEST = 3
@@ -75,7 +75,7 @@ program test_biotsavart
             end if
         end do
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_compute_vector_potential
@@ -101,7 +101,7 @@ program test_biotsavart
 
     subroutine test_compute_vector_potential_circular_loop
         use biotsavart, only: coils_t, compute_vector_potential, &
-                              deinit_coils, clight, calc_norm
+                              coils_deinit, clight, calc_norm
 
         real(dp), parameter :: tol = 1.0e-5
         integer, parameter :: N_TEST = 3
@@ -132,7 +132,7 @@ program test_biotsavart
             end if
         end do
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_compute_vector_potential_circular_loop
@@ -151,7 +151,7 @@ program test_biotsavart
 
     subroutine test_compute_magnetic_field
         use biotsavart, only: coils_t, compute_magnetic_field, &
-                              deinit_coils, clight, calc_norm
+                              coils_deinit, clight, calc_norm
 
         real(dp), parameter :: tol = 1.0e-9
         integer, parameter :: N_TEST = 3
@@ -181,7 +181,7 @@ program test_biotsavart
             end if
         end do
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_compute_magnetic_field
@@ -210,7 +210,7 @@ program test_biotsavart
 
     subroutine test_compute_magnetic_field_circular_loop
         use biotsavart, only: coils_t, compute_magnetic_field, &
-                              deinit_coils, clight, calc_norm
+                              coils_deinit, clight, calc_norm
 
         real(dp), parameter :: tol = 1.0e-5
         integer, parameter :: N_TEST = 3
@@ -240,7 +240,7 @@ program test_biotsavart
             end if
         end do
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_compute_magnetic_field_circular_loop
@@ -278,7 +278,7 @@ program test_biotsavart
 
 
     subroutine init_straight_wire_coils(coils)
-        use biotsavart, only: coils_t, init_coils
+        use biotsavart, only: coils_t, coils_init
 
         type(coils_t), intent(out) :: coils
 
@@ -291,12 +291,12 @@ program test_biotsavart
         z = [-L/2.0d0, -L/2.5d0, 0.0d0, L/2.0d0]
         current = [1.0d0, 1.0d0, 1.0d0, 0.0d0]
 
-        call init_coils(x, y, z, current, coils)
+        call coils_init(x, y, z, current, coils)
     end subroutine init_straight_wire_coils
 
 
     subroutine init_circular_loop_coils(coils, number_of_segments)
-        use biotsavart, only: coils_t, init_coils
+        use biotsavart, only: coils_t, coils_init
 
         type(coils_t), intent(out) :: coils
         integer, intent(in) :: number_of_segments
@@ -316,7 +316,7 @@ program test_biotsavart
         end do
         current(number_of_segments) = 0.0d0
 
-        call init_coils(x, y, z, current, coils)
+        call coils_init(x, y, z, current, coils)
     end subroutine init_circular_loop_coils
 
 

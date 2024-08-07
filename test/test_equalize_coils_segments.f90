@@ -14,7 +14,7 @@ program test_equalize_coils_segments
 
 
     subroutine test_compute_coils_segment_lengths
-        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use biotsavart, only: coils_t, coils_init, coils_deinit
         use equalize_coils_segments, only: compute_coils_segments_lengths
 
         real(dp), parameter :: tol = 1.0e-9
@@ -40,14 +40,14 @@ program test_equalize_coils_segments
             end if
         end do
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_compute_coils_segment_lengths
 
 
     subroutine test_calc_subknot_xyz
-        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use biotsavart, only: coils_t, coils_init, coils_deinit
         use equalize_coils_segments, only: calc_subknot_xyz
 
         real(dp), parameter :: tol = 1.0e-9
@@ -73,13 +73,13 @@ program test_equalize_coils_segments
             end if
         end do
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
         call print_ok
     end subroutine test_calc_subknot_xyz
 
 
     subroutine test_cut_coils_segments
-        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use biotsavart, only: coils_t, coils_init, coils_deinit
         use equalize_coils_segments, only: cut_coils_segments, &
                                            compute_coils_segments_lengths
 
@@ -124,13 +124,13 @@ program test_equalize_coils_segments
             error stop
         end if
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
         call print_ok
     end subroutine test_cut_coils_segments
 
 
     subroutine test_equalize_coils_lenghts
-        use biotsavart, only: coils_t, init_coils, deinit_coils
+        use biotsavart, only: coils_t, coils_init, coils_deinit
         use equalize_coils_segments, only: equalize_coils_segments_lengths, &
                                            compute_coils_segments_lengths
 
@@ -148,8 +148,8 @@ program test_equalize_coils_segments
             call print_fail
             error stop
         end if
-        call deinit_coils(coils)
-        call deinit_coils(old_coils)
+        call coils_deinit(coils)
+        call coils_deinit(old_coils)
 
         call init_diamond_wire_coils(coils)
         coils%x(2) = coils%x(2) + 0.5d0
@@ -167,7 +167,7 @@ program test_equalize_coils_segments
         end if
         deallocate(lengths)
 
-        call deinit_coils(coils)
+        call coils_deinit(coils)
 
         call print_ok
     end subroutine test_equalize_coils_lenghts
@@ -209,7 +209,7 @@ program test_equalize_coils_segments
 
 
     subroutine init_diamond_wire_coils(coils)
-        use biotsavart, only: coils_t, init_coils
+        use biotsavart, only: coils_t, coils_init
 
         type(coils_t), intent(out) :: coils
 
@@ -220,7 +220,7 @@ program test_equalize_coils_segments
         z = [0.0d0, 1.0d0, 0.0d0, -1.0d0, 0.0d0]
         current = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 0.0d0]
 
-        call init_coils(x, y, z, current, coils)
+        call coils_init(x, y, z, current, coils)
     end subroutine init_diamond_wire_coils
 
 

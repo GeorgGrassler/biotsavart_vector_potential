@@ -14,7 +14,7 @@ end type coils_t
 contains
 
 
-subroutine init_coils(x, y, z, current, coils)
+subroutine coils_init(x, y, z, current, coils)
     real(dp), intent(in) :: x(:), y(:), z(:), current(:)
     type(coils_t), intent(out) :: coils
 
@@ -27,14 +27,14 @@ subroutine init_coils(x, y, z, current, coils)
     coils%y = y
     coils%z = z
     coils%current = current
-end subroutine init_coils
+end subroutine coils_init
 
 
-subroutine deinit_coils(coils)
+subroutine coils_deinit(coils)
     type(coils_t), intent(inout) :: coils
 
     call deallocate_coils_data(coils)
-end subroutine deinit_coils
+end subroutine coils_deinit
 
 
 subroutine load_coils_from_file(filename, coils)

@@ -38,7 +38,7 @@ end function compute_coils_segments_lengths
 
 
 subroutine cut_coils_segments(coils, cuts_per_knot)
-    use biotsavart, only: init_coils, deinit_coils
+    use biotsavart, only: coils_init, coils_deinit
     
     type(coils_t), intent(inout) :: coils
     integer, dimension(:), intent(in) :: cuts_per_knot
@@ -67,8 +67,8 @@ subroutine cut_coils_segments(coils, cuts_per_knot)
     y(total_knots) = coils%y(size(coils%y))
     z(total_knots) = coils%z(size(coils%z))
     current(total_knots) = 0.0d0
-    call deinit_coils(coils)
-    call init_coils(x, y, z, current, coils)
+    call coils_deinit(coils)
+    call coils_init(x, y, z, current, coils)
     deallocate(x, y, z, current)
 end subroutine cut_coils_segments
 
